@@ -77,7 +77,7 @@ public class AccountController {
             return ResponseEntity.ok().body(accountService.getAccount(accountNumber));
         }
         catch (BadRequestException e){
-            return null;
+            return ResponseEntity.badRequest().body(null);
         }
     }
 }

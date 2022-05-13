@@ -62,7 +62,7 @@ public class ClientController {
             ClientDto client = clientService.getClient(passport);
             return ResponseEntity.ok(client);
         } catch (BadRequestException badRequestException) {
-            return null;
+            return ResponseEntity.badRequest().body(null);
         }
     }
 }

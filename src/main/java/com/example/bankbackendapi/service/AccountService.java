@@ -8,4 +8,6 @@ public interface AccountService {
     String freezeAccount(Long accountNumber);
     String unfreezeAccount(Long accountNumber);
     AccountDto getAccount(Long accountNumber);
+    String withdrawMoneyFromAccountBalance(Long accountNumber, Double amount);
+    String addMoneyOnAccountBalance(Long accountNumber,Double amount);
 }

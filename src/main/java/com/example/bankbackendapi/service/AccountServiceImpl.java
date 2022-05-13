@@ -5,11 +5,12 @@ import com.example.bankbackendapi.model.dto.AccountDto;
 import com.example.bankbackendapi.model.entity.AccountEntity;
 import com.example.bankbackendapi.repository.AccountRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-@Component
+@Service
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
@@ -25,14 +26,14 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public String createAccount(AccountDto accountDto) {
-        if(checkAccount(accountDto.getAccountNumber())){
+        if (checkAccount(accountDto.getAccountNumber())) {
             throw new BadRequestException("Already have");
         }
 
         accountRepository.save(AccountEntity.builder()
-                        .accountNumber(accountDto.getAccountNumber())
-                        .balance(STARTING_BALANCE)
-                        .isFrozen(INITIAL_STATE)
+                .accountNumber(accountDto.getAccountNumber())
+                .balance(STARTING_BALANCE)
+                .isFrozen(INITIAL_STATE)
                 .build());
 
         return "Account created";
@@ -42,7 +43,7 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public String deleteAccount(Long accountNumber) {
 
-        if(checkAccount(accountNumber)){
+        if (checkAccount(accountNumber)) {
             throw new BadRequestException("Account does not exist");
         }
         accountRepository.deleteByAccountNumber(accountNumber);
@@ -52,7 +53,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public String freezeAccount(Long accountNumber) {
-        if(checkAccount(accountNumber)){
+        if (checkAccount(accountNumber)) {
             throw new BadRequestException("Account does not exist");
         }
         AccountEntity byAccountNumber = accountRepository.getByAccountNumber(accountNumber);
@@ -63,7 +64,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public String unfreezeAccount(Long accountNumber) {
-        if(checkAccount(accountNumber)){
+        if (checkAccount(accountNumber)) {
             throw new BadRequestException("Account does not exist");
         }
         AccountEntity byAccountNumber = accountRepository.getByAccountNumber(accountNumber);
@@ -74,7 +75,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDto getAccount(Long accountNumber) {
-        if(checkAccount(accountNumber)){
+        if (checkAccount(accountNumber)) {
             throw new BadRequestException("Account does not exist");
         }
         AccountEntity byAccountNumber = accountRepository.getByAccountNumber(accountNumber);
@@ -86,10 +87,37 @@ public class AccountServiceImpl implements AccountService {
         return accountDto;
     }
 
+    public String withdrawMoneyFromAccountBalance(Long accountNumber, Double amount) {
+        if (checkAccount(accountNumber)) {
+            throw new BadRequestException("Account does not exist");
+        }
+        AccountEntity accountEntity = accountRepository.getByAccountNumber(accountNumber);
+        if (accountEntity.getBalance() < amount) {
+            return "There is not enough money on the account";
+        }
+        Double balanceAfter = accountEntity.getBalance() - amount;
+        accountEntity.setBalance(balanceAfter);
+        accountRepository.save(accountEntity);
+        return "Funds withdrawn";
+    }
 
-    private boolean checkAccount(Long accountNumber){
+    @Override
+    public String addMoneyOnAccountBalance(Long accountNumber, Double amount) {
+        if (checkAccount(accountNumber)) {
+            throw new BadRequestException("Account does not exist");
+        }
+        AccountEntity accountEntity = accountRepository.getByAccountNumber(accountNumber);
+        Double balanceAfter = accountEntity.getBalance() + amount;
+        accountEntity.setBalance(balanceAfter);
+        accountRepository.save(accountEntity);
+        return "Funds added";
+
+    }
+
+
+    private boolean checkAccount(Long accountNumber) {
         Optional<AccountEntity> accountEntity = accountRepository.findById(accountNumber);
-        if(accountEntity.isEmpty()){
+        if (accountEntity.isEmpty()) {
             return false;
         }
         return true;
